@@ -48,11 +48,7 @@ def get_all_posts():
 
 @app.route("/post/<int:index>")
 def show_post(index):
-    requested_post = None
-    posts = db.session.query(BlogPost).all()
-    for blog_post in posts:
-        if blog_post["id"] == index:
-            requested_post = blog_post
+    requested_post = db.session.query(BlogPost).filter_by(id=index).first()
     return render_template("post.html", post=requested_post)
 
 
