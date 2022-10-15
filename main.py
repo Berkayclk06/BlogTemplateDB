@@ -78,7 +78,36 @@ def new_post():
         db.session.add(new_blog)
         db.session.commit()
         return redirect(url_for("get_all_posts"))
-    return render_template("make-post.html", form=form)
+    return render_template("make-post.html", form=form, title="New Post")
+
+
+@app.route("/edit-post/<int:post_id>", methods=['GET', 'POST'])
+def edit_post(post_id):
+    post = db.session.query(BlogPost).filter_by(id=post_id).first()
+    edit_form = CreatePostForm(
+        title=post.title,
+        subtitle=post.subtitle,
+        author=post.author,
+        img_url=post.img_url,
+        body=post.body
+    )
+    if edit_form.validate_on_submit():
+        post.title = edit_form.title.data
+        post.subtitle = edit_form.subtitle.data
+        post.author = edit_form.author.data
+        post.img_url = edit_form.img_url.data
+        post.body = edit_form.body.data
+        db.session.commit()
+        return redirect(url_for("show_post", index=post.id))
+    return render_template("make-post.html", form=edit_form, post_id=post_id, title="Edit Post")
+
+
+@app.route("/delete/<int:post_id>")
+def delete_post(post_id):
+    blog = db.session.query(BlogPost).filter_by(id=post_id).first()
+    db.session.delete(blog)
+    db.session.commit()
+    return redirect(url_for("get_all_posts"))
 
 
 if __name__ == "__main__":
