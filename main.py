@@ -5,6 +5,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, URL
 from flask_ckeditor import CKEditor, CKEditorField
+from datetime import datetime
 
 
 app = Flask(__name__)
@@ -36,7 +37,7 @@ class CreatePostForm(FlaskForm):
     subtitle = StringField("Subtitle", validators=[DataRequired()])
     author = StringField("Your Name", validators=[DataRequired()])
     img_url = StringField("Blog Image URL", validators=[DataRequired(), URL()])
-    body = StringField("Blog Content", validators=[DataRequired()])
+    body = CKEditorField("Blog Content", validators=[DataRequired()])
     submit = SubmitField("Submit Post")
 
 
@@ -60,6 +61,24 @@ def about():
 @app.route("/contact")
 def contact():
     return render_template("contact.html")
+
+
+@app.route("/new-post", methods=["GET", "POST"])
+def new_post():
+    form = CreatePostForm()
+    if form.validate_on_submit():
+        new_blog = BlogPost(
+            title=form.title.data,
+            subtitle=form.subtitle.data,
+            author=form.author.data,
+            img_url=form.img_url.data,
+            date=datetime.today().strftime("%B %d, %Y"),
+            body=form.body.data
+        )
+        db.session.add(new_blog)
+        db.session.commit()
+        return redirect(url_for("get_all_posts"))
+    return render_template("make-post.html", form=form)
 
 
 if __name__ == "__main__":
